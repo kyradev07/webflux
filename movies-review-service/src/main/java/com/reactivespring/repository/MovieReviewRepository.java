@@ -6,5 +6,5 @@ import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Flux;
 
 public interface MovieReviewRepository extends ReactiveMongoRepository<Review, String> {
-    Flux<Review> findReviewByMovieInfoId(Integer movieInfoId);
+    Flux<Review> findReviewByMovieInfoId(Long movieInfoId);
 }

@@ -31,18 +31,11 @@ public class ReviewHandler {
         Flux<Review> reviewByMovieInfoId;
         Optional<String> movieInfoId = request.queryParam("movieInfoId");
 
-        movieInfoId.ifPresentOrElse(
-                id -> System.out.println("Movie Info ID " + id),
-                () -> System.out.println("No Movie Info ID found")
-        );
-
         if (movieInfoId.isPresent()) {
-            reviewByMovieInfoId = this.movieReviewRepository.findReviewByMovieInfoId(Integer.valueOf(movieInfoId.get()));
+            reviewByMovieInfoId = this.movieReviewRepository.findReviewByMovieInfoId(Long.valueOf(movieInfoId.get()));
         } else {
             reviewByMovieInfoId = this.movieReviewRepository.findAll();
         }
-
-
 
         return ServerResponse.ok().body(reviewByMovieInfoId, Review.class);
     }
@@ -64,7 +57,6 @@ public class ReviewHandler {
 
     public Mono<ServerResponse> deleteReview(ServerRequest request) {
         String id = request.pathVariable("id");
-        System.out.println("ID " + id);
         return this.movieReviewRepository.findById(id)
                 .flatMap(existingReview -> {
                     System.out.println("Existing review found " + existingReview);
