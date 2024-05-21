@@ -58,10 +58,8 @@ public class ReviewHandler {
     public Mono<ServerResponse> deleteReview(ServerRequest request) {
         String id = request.pathVariable("id");
         return this.movieReviewRepository.findById(id)
-                .flatMap(existingReview -> {
-                    System.out.println("Existing review found " + existingReview);
-                    return movieReviewRepository.deleteById(id);
-                }).then(ServerResponse.noContent().build());
+                .flatMap(existingReview -> movieReviewRepository.deleteById(id))
+                .then(ServerResponse.noContent().build());
 
     }
 }
