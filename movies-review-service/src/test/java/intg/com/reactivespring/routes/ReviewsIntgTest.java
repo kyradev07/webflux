@@ -131,4 +131,18 @@ public class ReviewsIntgTest {
                 .expectStatus()
                 .isNoContent();
     }
+
+    @Test
+    void notFoundReview() {
+        String id = "rev4";
+
+        webClient
+                .delete()
+                .uri(REVIEWS_URL + "/{id}", id)
+                .exchange()
+                .expectStatus()
+                .isNotFound()
+                .expectBody(String.class)
+                .isEqualTo("Review not found for the ID -> rev4");
+    }
 }
