@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1/movie-info")
 public class MovieInfoController {
 
     private final MovieInfoService movieInfoService;
@@ -20,14 +20,14 @@ public class MovieInfoController {
         this.movieInfoService = movieInfoService;
     }
 
-    @GetMapping("/movie-info")
+    @GetMapping
     public Flux<MovieInfo> getAllMovieInfos(@RequestParam(value = "year", required = false) Integer year, @RequestParam(value = "name", required = false) String name) {
         return year == null
                 ? this.movieInfoService.getAllMovieInfos().log()
                 : this.movieInfoService.getMovieInfoByYear(year).log();
     }
 
-    @GetMapping("/movie-info/by")
+    @GetMapping("/by")
     public Mono<ResponseEntity<MovieInfo>> getMovieInfoByName(@RequestParam(value = "name", required = false) String name) {
         return this.movieInfoService.getMovieInfoByName(name)
                 .map(movieInfo -> ResponseEntity.ok().body(movieInfo))
@@ -35,7 +35,7 @@ public class MovieInfoController {
                 .log();
     }
 
-    @GetMapping("/movie-info/{id}")
+    @GetMapping("/{id}")
     public Mono<ResponseEntity<MovieInfo>> getMovieInfoById(@PathVariable String id) {
         return this.movieInfoService.getMovieInfoById(id)
                 .map(movieInfo -> ResponseEntity.ok().body(movieInfo))
@@ -43,13 +43,13 @@ public class MovieInfoController {
                 .log();
     }
 
-    @PostMapping("/movie-info")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<MovieInfo> addMovieInfo(@RequestBody @Valid MovieInfo movieInfo) {
         return this.movieInfoService.addMovieInfo(movieInfo).log();
     }
 
-    @PutMapping("/movie-info/{id}")
+    @PutMapping("/{id}")
     public Mono<ResponseEntity<MovieInfo>> updateMovieInfo(@RequestBody MovieInfo updatedMovideInfo, @PathVariable String id) {
         return this.movieInfoService.updateMovieInfo(updatedMovideInfo, id)
                 .map(movieInfo -> ResponseEntity.ok().body(movieInfo))
@@ -57,7 +57,7 @@ public class MovieInfoController {
                 .log();
     }
 
-    @DeleteMapping("/movie-info/{id}")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteMovieInfo(@PathVariable String id) {
         return this.movieInfoService.deleteMovieInfo(id).log();
