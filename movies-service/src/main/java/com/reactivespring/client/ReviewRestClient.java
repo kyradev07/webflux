@@ -22,7 +22,7 @@ public class ReviewRestClient {
     public Flux<Review> retrieveReviews(String movieInfoId) {
         String uri = UriComponentsBuilder
                 .fromHttpUrl(REVIEW_URL)
-                .queryParam("id", movieInfoId)
+                .queryParam("movieInfoId", movieInfoId)
                 .buildAndExpand()
                 .toUriString();
 
@@ -30,7 +30,7 @@ public class ReviewRestClient {
                 .get()
                 .uri(uri)
                 .retrieve()
-                .bodyToFlux(Review.class);
-
+                .bodyToFlux(Review.class)
+                .log();
     }
 }
