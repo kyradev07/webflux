@@ -40,7 +40,8 @@ public class MovieInfoRestClient {
                 })
                 .onStatus(HttpStatus::is5xxServerError, clientResponse -> clientResponse
                         .bodyToMono(String.class)
-                        .flatMap(responseMessage -> Mono.error(new MoviesInfoServerException("Server Exception in MovieInfo -> " + responseMessage))))
+                        .flatMap(responseMessage -> Mono.error(new MoviesInfoServerException("Server Exception in MovieInfoService -> " + responseMessage)))
+                )
                 .bodyToMono(MovieInfo.class)
                 .log();
     }
