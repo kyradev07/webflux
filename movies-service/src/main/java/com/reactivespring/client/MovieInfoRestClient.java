@@ -2,6 +2,7 @@ package com.reactivespring.client;
 
 import com.reactivespring.domain.MovieInfo;
 import com.reactivespring.exception.MoviesInfoClientException;
+import com.reactivespring.exception.MoviesInfoServerException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -27,13 +28,19 @@ public class MovieInfoRestClient {
                 .uri(url, movieId)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, clientResponse -> {
+                    Mono<Throwable> error;
                     if (clientResponse.statusCode().equals(HttpStatus.NOT_FOUND)) {
-                        return Mono.error(new MoviesInfoClientException("There is not MovieInfo for id " + movieId, clientResponse.statusCode().value()));
+                        error = Mono.error(new MoviesInfoClientException("There is not MovieInfo for id " + movieId, clientResponse.statusCode().value()));
+                    } else {
+                        error = clientResponse
+                                .bodyToMono(String.class)
+                                .flatMap(responseMessage -> Mono.error(new MoviesInfoClientException(responseMessage, clientResponse.statusCode().value())));
                     }
-                    return clientResponse
-                            .bodyToMono(String.class)
-                            .flatMap(responseMessage -> Mono.error(new MoviesInfoClientException(responseMessage, clientResponse.statusCode().value())));
+                    return error;
                 })
+                .onStatus(HttpStatus::is5xxServerError, clientResponse -> clientResponse
+                        .bodyToMono(String.class)
+                        .flatMap(responseMessage -> Mono.error(new MoviesInfoServerException("Server Exception in MovieInfo -> " + responseMessage))))
                 .bodyToMono(MovieInfo.class)
                 .log();
     }
