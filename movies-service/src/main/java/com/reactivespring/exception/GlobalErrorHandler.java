@@ -13,6 +13,7 @@ public class GlobalErrorHandler {
     @ExceptionHandler(MoviesInfoClientException.class)
     public ResponseEntity<String> handleMovieInfoClientException(MoviesInfoClientException exception) {
         log.error("Handler Movie Info Client Exception 4XX: {}", exception.getMessage());
+        System.out.println("****************ERROR -> " + exception.getMessage() + " " + exception.getStatusCode());
         return ResponseEntity.status(exception.getStatusCode()).body(exception.getMessage());
     }
 
