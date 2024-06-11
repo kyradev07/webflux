@@ -11,15 +11,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalErrorHandler {
 
     @ExceptionHandler(MoviesInfoClientException.class)
-    public ResponseEntity<String> handleMovieInfoClientException(MoviesInfoClientException exception) {
-        log.error("Handler Movie Info Client Exception 4XX: {}", exception.getMessage());
-        System.out.println("****************ERROR -> " + exception.getMessage() + " " + exception.getStatusCode());
+    public ResponseEntity<String> handleClientException(MoviesInfoClientException exception) {
+        log.error("Exception Caught in handleClientException : {}", exception.getMessage());
         return ResponseEntity.status(exception.getStatusCode()).body(exception.getMessage());
     }
 
-    @ExceptionHandler(MoviesInfoServerException.class)
-    public ResponseEntity<String> handleMovieInfoClientExceptionServer(MoviesInfoServerException exception) {
-        log.error("Handler Movie Info Client Exception 5XX: {}", exception.getMessage());
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRunTimeException(RuntimeException exception) {
+        log.error("Exception Caught in handleRunTimeException : {}", exception.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
     }
 }
