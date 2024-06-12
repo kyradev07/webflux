@@ -3,10 +3,12 @@ package com.reactivespring.controller;
 import com.reactivespring.domain.MovieInfo;
 import com.reactivespring.service.MovieInfoService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import javax.validation.Valid;
 
@@ -15,6 +17,7 @@ import javax.validation.Valid;
 public class MovieInfoController {
 
     private final MovieInfoService movieInfoService;
+    Sinks.Many<MovieInfo> movieInfoSink = Sinks.many().replay().all();
 
     public MovieInfoController(MovieInfoService movieInfoService) {
         this.movieInfoService = movieInfoService;
@@ -43,10 +46,16 @@ public class MovieInfoController {
                 .log();
     }
 
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<MovieInfo> getMovieInfoById() {
+        return this.movieInfoSink.asFlux().log();
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<MovieInfo> addMovieInfo(@RequestBody @Valid MovieInfo movieInfo) {
-        return this.movieInfoService.addMovieInfo(movieInfo).log();
+        return this.movieInfoService.addMovieInfo(movieInfo)
+                .doOnNext(savedMovie -> this.movieInfoSink.tryEmitNext(savedMovie));
     }
 
     @PutMapping("/{id}")

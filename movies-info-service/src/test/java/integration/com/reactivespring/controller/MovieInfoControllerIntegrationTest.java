@@ -9,8 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.reactive.server.FluxExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -77,6 +80,43 @@ class MovieInfoControllerIntegrationTest {
                 .isOk()
                 .expectBodyList(MovieInfo.class)
                 .hasSize(3);
+    }
+
+    @Test
+    void getAllMovieInfoStream() {
+        MovieInfo movieInfo = new MovieInfo(null, "Batman Begins1", 2005, List.of("Christian Bale", "Michael Caine"), LocalDate.parse("2005-06-15"));
+
+        webTestClient
+                .post()
+                .uri(V_1_MOVIE_INFO)
+                .bodyValue(movieInfo)
+                .exchange()
+                .expectStatus()
+                .isCreated()
+                .expectBody(MovieInfo.class)
+                .consumeWith(movieInfoEntityExchangeResult -> {
+                    MovieInfo responseBody = movieInfoEntityExchangeResult.getResponseBody();
+                    assert responseBody != null;
+                    assertNotNull(responseBody.getMovieInfoId());
+
+                });
+
+
+        Flux<MovieInfo> responseBody = webTestClient
+                .get()
+                .uri(V_1_MOVIE_INFO + "/stream")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .returnResult(MovieInfo.class)
+                .getResponseBody();
+
+        StepVerifier.create(responseBody)
+                .assertNext(movieInfoEntity -> {
+                    assert movieInfoEntity.getMovieInfoId() != null;
+                })
+                .thenCancel()
+                .verify();
     }
 
     @Test
