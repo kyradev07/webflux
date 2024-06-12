@@ -6,11 +6,13 @@ import com.reactivespring.exception.ReviewNotFoundException;
 import com.reactivespring.repository.MovieReviewRepository;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -23,8 +25,8 @@ import java.util.stream.Collectors;
 public class ReviewHandler {
 
     private final Validator validator;
-
     private final MovieReviewRepository movieReviewRepository;
+    private final Sinks.Many<Review> reviewSink = Sinks.many().replay().latest();
 
     public ReviewHandler(MovieReviewRepository movieReviewRepository, Validator validator) {
         this.movieReviewRepository = movieReviewRepository;
@@ -36,6 +38,7 @@ public class ReviewHandler {
                 .bodyToMono(Review.class)
                 .doOnNext(this::validate)
                 .flatMap(this.movieReviewRepository::save)
+                .doOnNext(this.reviewSink::tryEmitNext)
                 .flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
     }
 
@@ -87,6 +90,16 @@ public class ReviewHandler {
                 .switchIfEmpty(Mono.error(new ReviewNotFoundException("Review not found for the ID -> " + id)))
                 .flatMap(existingReview -> movieReviewRepository.deleteById(id))
                 .then(ServerResponse.noContent().build());
+
+    }
+
+    public Mono<ServerResponse> getReviewsStream(ServerRequest request) {
+        return ServerResponse
+                .ok()
+                .contentType(MediaType.TEXT_EVENT_STREAM)
+                .body(this.reviewSink.asFlux(), Review.class)
+                .log();
+
 
     }
 }

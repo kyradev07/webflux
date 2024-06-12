@@ -17,7 +17,7 @@ import javax.validation.Valid;
 public class MovieInfoController {
 
     private final MovieInfoService movieInfoService;
-    Sinks.Many<MovieInfo> movieInfoSink = Sinks.many().replay().all();
+    private final Sinks.Many<MovieInfo> movieInfoSink = Sinks.many().replay().all();
 
     public MovieInfoController(MovieInfoService movieInfoService) {
         this.movieInfoService = movieInfoService;
@@ -55,7 +55,7 @@ public class MovieInfoController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<MovieInfo> addMovieInfo(@RequestBody @Valid MovieInfo movieInfo) {
         return this.movieInfoService.addMovieInfo(movieInfo)
-                .doOnNext(savedMovie -> this.movieInfoSink.tryEmitNext(savedMovie));
+                .doOnNext(this.movieInfoSink::tryEmitNext);
     }
 
     @PutMapping("/{id}")
